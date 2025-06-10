@@ -1,6 +1,6 @@
 # A New Foundation Model for MRI
 
-This is the official code for our paper: [???](https://arxiv.org/abs/2404.09957), where we propose a new foundation model designed specifically for MRI. Figure 1 shows the overview of this model, including training data, training algorithm, and performance on the few-shot segmentation task. 
+This is the official code for our paper: [MRI-CORE: A Foundation Model for Magnetic Resonance Imaging](https://arxiv.org/abs/2404.09957), where we propose a new foundation model designed specifically for MRI. Figure 1 shows the overview of this model, including training data, training algorithm, and performance on the few-shot segmentation task. 
 
 ![Fig1: Overview of general fine-tuning strategies based on different levels of dataset availability.](https://github.com/mazurowski-lab/finetune-SAM/blob/main/finetune_strategy_v9.png)
 
