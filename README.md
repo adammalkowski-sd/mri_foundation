@@ -37,3 +37,6 @@ pred, _ = model.mask_decoder(image_embeddings=img_emb,
                              dense_prompt_embeddings=dense_emb,                                                     
                              multimask_output=True)
 ```
+
+### License
+Codes and model are under [Apache 2.0](./LICENSE).
