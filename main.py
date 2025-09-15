@@ -32,16 +32,6 @@ def train_model(trainloader,valloader,testloader,dir_checkpoint,epochs):
         sam = sam_model_registry[args.arch](args,checkpoint="/data/humanBodyProject/mri_foundation_model/pretrained_weights/medsam_vit_b.pth", num_classes=args.num_cls, image_size=args.image_size)
     if args.model == 'ours':
         sam = sam_model_registry[args.arch](args,checkpoint="/data/humanBodyProject/mri_foundation_model/dinov2/dino_vitb+sam_0429_nolayerscale_smallerlr/eval/training_47535/teacher_checkpoint.pth", num_classes=args.num_cls, image_size=args.image_size, pretrained_sam=True)
-    if args.model == 'abla1':
-        #sam = sam_model_registry[args.arch](args,checkpoint="/data/humanBodyProject/mri_foundation_model/dinov2/dino_vitb+sam+breast_0213_nolayerscale/eval/training_49999/teacher_checkpoint.pth", num_classes=args.num_cls, image_size=args.image_size, pretrained_sam=True)
-        #sam = sam_model_registry[args.arch](args,checkpoint="/data/humanBodyProject/mri_foundation_model/dinov2/dino_vitb+sam_0415_nolayerscale_3dnorm/eval/training_47535/teacher_checkpoint.pth", num_classes=args.num_cls, image_size=args.image_size, pretrained_sam=True)
-        #sam = sam_model_registry[args.arch](args,checkpoint="/data/humanBodyProject/mri_foundation_model/dinov2/dino_vitb_0506_nolayerscale/eval/training_202027/teacher_checkpoint.pth", num_classes=args.num_cls, image_size=args.image_size, pretrained_sam=True)
-        sam = sam_model_registry[args.arch](args,checkpoint="/data/humanBodyProject/mri_foundation_model/dinov2/dino_vitb+sam_0429_nolayerscale_smallerlr/eval/training_23767/teacher_checkpoint.pth", num_classes=args.num_cls, image_size=args.image_size, pretrained_sam=True)
-    if args.model == 'abla2':
-        #sam = sam_model_registry[args.arch](args,checkpoint="/data/humanBodyProject/mri_foundation_model/dinov2/dino_vitb+sam_0311_nolayerscale_withstudent_epoch/eval/training_23767/teacher_checkpoint.pth", num_classes=args.num_cls, image_size=args.image_size, pretrained_sam=True)
-        #sam = sam_model_registry[args.arch](args,checkpoint="/data/humanBodyProject/mri_foundation_model/dinov2/dino_vitb+sam_0422_nolayerscale_pretrainstudent/eval/training_23767/teacher_checkpoint.pth", num_classes=args.num_cls, image_size=args.image_size, pretrained_sam=True)
-        #sam = sam_model_registry[args.arch](args,checkpoint="/data/humanBodyProject/mri_foundation_model/dinov2/dino_vitb_0506_nolayerscale/eval/training_570431/teacher_checkpoint.pth", num_classes=args.num_cls, image_size=args.image_size, pretrained_sam=True)
-        sam = sam_model_registry[args.arch](args,checkpoint="/data/humanBodyProject/mri_foundation_model/dinov2/dino_vitb+sam_0429_nolayerscale_smallerlr/eval/training_95070/teacher_checkpoint.pth", num_classes=args.num_cls, image_size=args.image_size, pretrained_sam=True)
 
     if args.finetune_type == 'adapter':
         for n, value in sam.named_parameters():
@@ -275,8 +265,7 @@ if __name__ == "__main__":
     args.b = 2
         
     delete_empty_masks = True
-    #test_dataset = Public_dataset(args,args.img_folder, args.mask_folder, test_img_list, phase='test',targets=[args.targets],normalize_type=n_type,if_prompt=False,crop_size=args.image_size, delete_empty_masks=delete_empty_masks, target_cls=args.cls)
-    test_dataset = Public_dataset(args,args.img_folder, args.mask_folder, train_img_list, phase='pseudotest',targets=[args.targets],normalize_type=n_type,if_prompt=False,crop_size=args.image_size, few_shot=True, delete_empty_masks=delete_empty_masks, target_cls=args.cls)
+    test_dataset = Public_dataset(args,args.img_folder, args.mask_folder, test_img_list, phase='test',targets=[args.targets],normalize_type=n_type,if_prompt=False,crop_size=args.image_size, delete_empty_masks=delete_empty_masks, target_cls=args.cls)
     testloader = DataLoader(test_dataset, batch_size=args.b, shuffle=False, num_workers=8)
 
     
