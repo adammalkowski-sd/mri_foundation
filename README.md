@@ -63,6 +63,10 @@ from models.sam import sam_model_registry
 import cfg
 
 args = cfg.parse_args()
+# Disable adapters when using the model only for feature extraction (no fine-tuning)
+args.if_encoder_adapter = False
+args.if_mask_decoder_adapter = False
+
 model = sam_model_registry['vit_b'](
     args,
     checkpoint="PATH_TO_CHECKPOINT",
