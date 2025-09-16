@@ -7,11 +7,11 @@ def parse_args():
     parser.add_argument('-baseline', type=str, default='unet', help='baseline net type')
     parser.add_argument('-dataset_name', type=str, default='MRI-Prostate', help='the name of dataset to be finetuned')
     
-    parser.add_argument('-img_folder', type=str, default='./datasets/', help='the folder putting images')
-    parser.add_argument('-mask_folder', type=str, default='./datasets/', help='the folder putting masks')
-    parser.add_argument('-train_img_list', type=str, default='./datasets/train.csv')
-    parser.add_argument('-val_img_list', type=str,default='./datasets/val.csv')
-    parser.add_argument('-test_img_list', type=str,default='./datasets/val.csv')
+    parser.add_argument('-img_folder', type=str, default='./datasets/2D-slices/images', help='the folder putting images')
+    parser.add_argument('-mask_folder', type=str, default='./datasets/2D-slices/masks', help='the folder putting masks')
+    parser.add_argument('-train_img_list', type=str, default='./datasets/train.txt')
+    parser.add_argument('-val_img_list', type=str,default='./datasets/val.txt')
+    parser.add_argument('-test_img_list', type=str,default='./datasets/test.txt')
     parser.add_argument('-targets', type=str,default='combine_all')
     parser.add_argument('-cls', type=int,default=-1, help='cls to be segmented')
     parser.add_argument('-model', type=str, default='ours', help='which model to use')
@@ -58,12 +58,10 @@ def parse_args():
     parser.add_argument('-num_sample', type=int, default=4 , help='sample pos and neg')
     parser.add_argument('-roi_size', type=int, default=96 , help='resolution of roi')
 
-    parser.add_argument('-if_update_encoder', type=bool, default=False , help='if update_image_encoder')
-
-    parser.add_argument('-if_encoder_adapter', type=bool, default=False , help='if add adapter to encoder')
+    parser.add_argument('-if_update_encoder', type=bool, default=True, help='if update_image_encoder')
+    parser.add_argument('-if_encoder_adapter', type=bool, default=True, help='if add adapter to encoder')
     parser.add_argument('-encoder-adapter-depths', type=list, default=[0,1,10,11] , help='the depth of blocks to add adapter')
-
-    parser.add_argument('-if_mask_decoder_adapter', type=bool, default=False , help='if add adapter to mask decoder')
+    parser.add_argument('-if_mask_decoder_adapter', type=bool, default=True, help='if add adapter to mask decoder')
     parser.add_argument('-decoder_adapt_depth', type=int, default=2, help='the depth of the decoder adapter')
     
     parser.add_argument('-if_encoder_lora_layer', type=bool, default=False , help='if add lora to encoder')

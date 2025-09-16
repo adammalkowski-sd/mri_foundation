@@ -5,15 +5,8 @@ import numpy as np
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
-import cv2
 import random
-#import torchio as tio
-#import slicerio
-#import nrrd
-#import monai
 import pickle
-#import nibabel as nib
-from scipy.ndimage import zoom
 from torchvision.transforms import InterpolationMode
 
 class Public_dataset(Dataset):
@@ -64,79 +57,24 @@ class Public_dataset(Dataset):
                     patient_set[patient_name].append(d)
             
             temp = []
-            
             print('# of patients', len(patient_set))
 
             fs_num = 5
-            
             patient_list = list(patient_set.keys())
-            
-            # Exclude pseudo-test set for bone
-            if 'pseudo' not in phase:
-                if 'bone' in self.img_folder:
-                    random.seed(330)
-                    random.shuffle(patient_list)
-                    patient_list = patient_list[30:]
-                if 'breast' in self.img_folder:
-                    random.seed(330)
-                    random.shuffle(patient_list)
-                    patient_list = patient_list[5:]
+            count = 0
+            for k in patient_list:
+                rand_index = random.randint(0,len(patient_set[k])-1)
+                temp.append(patient_set[k][rand_index])
 
-                random.seed(seed)
-                random.shuffle(patient_list)
-
-                count = 0
-                for k in patient_list:
-                    rand_index = random.randint(0,len(patient_set[k])-1)
-                    temp.append(patient_set[k][rand_index])
-
-                    count += 1
-                    if count == fs_num:
-                        break
-                self.data_list = temp
-                
-                print(len(self.data_list), self.data_list)
-            else:
-                if 'bone' in self.img_folder:
-                    random.seed(330)
-                    random.shuffle(patient_list)
-                    patient_list = patient_list[:30]
-                if 'breast' in self.img_folder:
-                    random.seed(330)
-                    random.shuffle(patient_list)
-                    patient_list = patient_list[:5]
-
-                for k in patient_list:
-                    temp += patient_set[k]
-                self.data_list = temp
-
-                print('pseudo test size', len(patient_list), len(self.data_list))
+                count += 1
+                if count == fs_num:
+                    break
+            self.data_list = temp
+            print(len(self.data_list), self.data_list)
     
     def path2name(self, name):
-        # bone/breast format
-        if 'bonedata' in self.img_folder or 'breastdata' in self.img_folder:
-            temp = name.split('-')
-            patient_name = temp[0] + '-' + temp[1] + '-' + temp[2] + '-' + temp[3]
-
-        # amos mri / publichand
-        if 'handmri' in self.img_folder:
-            temp = name.split('_')
-            patient_name = temp[0]
-
-        # muscle format
-        if 'muscledata' in self.img_folder:
-            temp = name.split('_')
-            patient_name = temp[0] + temp[1] + temp[2] + temp[3].split('-')[0]
-
-        # abdmct dataset
-        if 0:
-            temp = name.split('_')
-            patient_name = temp[1]
-
-        # publicleg
-        if 'legmridata' in self.img_folder:
-            temp = name.split('-')
-            patient_name = temp[0] + temp[1]
+        temp = name.split('-')
+        patient_name = temp[0] + temp[1]
 
         return patient_name
 

@@ -15,7 +15,7 @@ import json
 # Use the arguments
 args = cfg.parse_args()
 args.num_cls = 1
-args.epochs = 3000
+args.epochs = 2000
 print(args)
 
 def train_model(trainloader,valloader,testloader,dir_checkpoint,epochs):

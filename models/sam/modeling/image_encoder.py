@@ -18,7 +18,6 @@ from .common import LayerNorm2d, MLPBlock, Adapter
 
 #class PromptEncoderViT
 
-# This class and its supporting functions below lightly adapted from the ViTDet backbone available at: https://github.com/facebookresearch/detectron2/blob/main/detectron2/modeling/backbone/vit.py # noqa
 class ImageEncoderViT(nn.Module):
     def __init__(
         self,
@@ -63,7 +62,6 @@ class ImageEncoderViT(nn.Module):
         self.in_chans = in_chans
         self.args = args
         self.depth = depth
-        self.dev = args.devices
 
         self.patch_embed = PatchEmbed(
             kernel_size=(patch_size, patch_size),
@@ -71,14 +69,12 @@ class ImageEncoderViT(nn.Module):
             in_chans=in_chans,
             embed_dim=embed_dim,
         )
-        if self.args.if_split_encoder_gpus:
-            self.patch_embed = self.patch_embed.to(self.dev[0])
 
         self.pos_embed: Optional[nn.Parameter] = None
         if use_abs_pos:
             # Initialize absolute positional embedding with pretrain image size.
             self.pos_embed = nn.Parameter(
-                torch.zeros(1, img_size // patch_size, img_size // patch_size, embed_dim,dtype=torch.float,device=self.dev[0]))
+                torch.zeros(1, img_size // patch_size, img_size // patch_size, embed_dim,dtype=torch.float))
 
         self.blocks = nn.ModuleList()
         for i in range(depth):
@@ -96,11 +92,6 @@ class ImageEncoderViT(nn.Module):
                 window_size=window_size if i not in global_attn_indexes else 0,
                 input_size=(img_size // patch_size, img_size // patch_size),
             )
-            if self.args.if_split_encoder_gpus:
-                if i<int(self.depth*self.args.gpu_fractions[0]):
-                    block.to(self.dev[0])
-                else:
-                    block.to(self.dev[1])
             self.blocks.append(block)
             
 
@@ -121,9 +112,6 @@ class ImageEncoderViT(nn.Module):
             ),
             LayerNorm2d(out_chans),
         )
-        if self.args.if_split_encoder_gpus:
-            self.neck = self.neck.to(self.dev[1])
-
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.patch_embed(x)
@@ -131,11 +119,6 @@ class ImageEncoderViT(nn.Module):
             x = x + self.pos_embed
 
         for i,blk in enumerate(self.blocks):
-            if self.args.if_split_encoder_gpus:
-                if i<int(self.depth*self.args.gpu_fractions[0]):
-                    x = x.to(self.dev[0])
-                else:
-                    x = x.to(self.dev[1])
             x = blk(x)
 
         x = self.neck(x.permute(0, 3, 1, 2))
@@ -209,28 +192,12 @@ class Block(nn.Module):
             H, W = x.shape[1], x.shape[2]
             x, pad_hw = window_partition(x, self.window_size)
 
-        ## 3d branch
-        if self.args.thd: 
-            print('add 3D branch')
-            hh, ww = x.shape[1], x.shape[2]
-            depth = self.args.chunk
-            xd = rearrange(x, '(b d) h w c -> (b h w) d c ', d=depth)
-            # xd = rearrange(xd, '(b d) n c -> (b n) d c', d=self.in_chans)
-            xd = self.norm1(xd)
-            dh, _ = closest_numbers(depth)
-            xd = rearrange(xd, 'bhw (dh dw) c -> bhw dh dw c', dh= dh)
-            xd = self.Depth_Adapter(self.attn(xd))
-            xd = rearrange(xd, '(b n) dh dw c ->(b dh dw) n c', n= hh * ww )
-
         x = self.norm1(x)
         x = self.attn(x)
         if self.args.if_encoder_adapter and (self.depth in self.args.encoder_adapter_depths):
             #print('add adapter layer')
             x = self.Space_Adapter(x)
 
-        if self.args.thd:
-            xd = rearrange(xd, 'b (hh ww) c -> b  hh ww c', hh= hh )
-            x = x + xd
         # Reverse window partition
         if self.window_size > 0:
             x = window_unpartition(x, self.window_size, pad_hw, (H, W))

@@ -9,7 +9,6 @@ from torchvision.utils import make_grid
 from torch.utils.data import DataLoader
 import torchvision.transforms as tt
 from PIL import Image
-import matplotlib.pyplot as plt
 from torchvision.datasets import ImageFolder
 import os
 import torchvision

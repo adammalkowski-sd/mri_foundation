@@ -16,7 +16,6 @@ from .modeling import (
     PromptEncoder,
     Sam,
     TwoWayTransformer,
-    TinyViT,
 )
 
 
@@ -65,67 +64,11 @@ def build_sam_vit_b(args, checkpoint=None, num_classes=1, image_size=1024, pretr
         pretrained_sam=pretrained_sam,
     )
 
-def build_sam_vit_t(args, checkpoint=None,  num_classes = 1):
-    prompt_embed_dim = 256
-    vit_patch_size = 16
-    image_embedding_size = 1024 // vit_patch_size
-    mobile_sam = Sam(
-            args, 
-            image_encoder=TinyViT(args,img_size=args.image_size, in_chans=3, num_classes=1000,
-                embed_dims=[64, 128, 160, 320],
-                depths=[2, 2, 6, 2],
-                num_heads=[2, 4, 5, 10],
-                window_sizes=[7, 7, 14, 7],
-                mlp_ratio=4.,
-                drop_rate=0.,
-                drop_path_rate=0.0,
-                use_checkpoint=False,
-                mbconv_expand_ratio=4.0,
-                local_conv_size=3,
-                layer_lr_decay=0.8
-            ),
-            prompt_encoder=PromptEncoder(
-            embed_dim=prompt_embed_dim,
-            image_embedding_size=(image_embedding_size, image_embedding_size),
-            input_image_size=(args.image_size, args.image_size),
-            mask_in_chans=16,
-            ),
-            mask_decoder=MaskDecoder(
-                    num_multimask_outputs=num_classes,
-                    transformer=TwoWayTransformer(
-                    args = args,
-                    depth=2,
-                    embedding_dim=prompt_embed_dim,
-                    mlp_dim=2048,
-                    num_heads=8,
-                ),
-                transformer_dim=prompt_embed_dim,
-                iou_head_depth=3,
-                iou_head_hidden_dim=256,
-            ),
-            pixel_mean=[123.675, 116.28, 103.53],
-            pixel_std=[58.395, 57.12, 57.375],
-        )
-
-    mobile_sam.eval()
-    #print(mobile_sam)
-    if checkpoint is not None:
-        with open(checkpoint, "rb") as f:
-            state_dict = torch.load(f)
-        try:
-            mobile_sam.load_state_dict(state_dict, strict = False)
-        except:
-            new_state_dict = load_from_mobile(mobile_sam, state_dict)
-            mobile_sam.load_state_dict(new_state_dict)
-    return mobile_sam
-
-
 sam_model_registry = {
     "default": build_sam_vit_h,
     "vit_h": build_sam_vit_h,
     "vit_l": build_sam_vit_l,
     "vit_b": build_sam_vit_b,
-    "vit_t": build_sam_vit_t,
 }
 
 
@@ -140,7 +83,6 @@ def _build_sam(
     image_size = 1024,
     pretrained_sam = False
 ):
-    dev = args.devices
     prompt_embed_dim = 256
 
     #image_size = 1024
@@ -245,10 +187,7 @@ def _build_sam(
             new_state_dict = {}
             if pretrained_sam:
                 print(args.arch)
-                if 'vit_l' in args.arch:
-                    new_state_dict = torch.load('../pretrained_weights/sam_vit_l_0b3195.pth')
-                if 'vit_b' in args.arch:
-                    new_state_dict = torch.load('../pretrained_weights/sam_vit_b_01ec64.pth')
+                new_state_dict = torch.load('pretrained_weights/sam_vit_b_01ec64.pth')
                 print('Start from SAM weight', len(new_state_dict))
 
             # Load from MAE
@@ -310,9 +249,6 @@ def _build_sam(
             print(msg)
             
     
-    if args.if_split_encoder_gpus:
-        sam.prompt_encoder = sam.prompt_encoder.to(dev[1])
-        sam.mask_decoder = sam.mask_decoder.to(dev[1])
     return sam
 
 
