@@ -193,11 +193,22 @@ def _build_sam(
             print(msg)
         else:
             print("Load from custom", checkpoint)
-            new_state_dict = {}
+
+            ## First load the original SAM weights
+            print("Downloading SAM ViT-B checkpoint...")
+            urllib.request.urlretrieve(
+                "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth",
+                "sam_weights.pth",
+            )
+            with open("sam_weights.pth", "rb") as f:
+                new_state_dict = torch.load(f, map_location="cpu")
             if pretrained_sam:
                 print(args.arch)
-                new_state_dict = torch.load("pretrained_weights/sam_vit_b_01ec64.pth")
-                print("Start from SAM weight", len(new_state_dict))
+                if "vit_l" in args.arch:
+                    state_dict = torch.load(checkpoint)
+                if "vit_b" in args.arch:
+                    state_dict = torch.load(checkpoint)
+                print("Start from SAM weight", len(state_dict))
 
             # Load from MAE
             if "model" in state_dict:
@@ -253,7 +264,7 @@ def _build_sam(
                 else:
                     print("Adding", new_k)
                 if "pos_embed" in k:
-                    new_state_dict[k] = new_pos_embed
+                    new_state_dict[new_k] = new_pos_embed
                 else:
                     new_state_dict[new_k] = state_dict[k]
 
